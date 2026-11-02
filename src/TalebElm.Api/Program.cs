@@ -1,12 +1,6 @@
-using FluentValidation;
 using TalebElm.Api.Middlewares;
-using TalebElm.Application.DTOs;
-using TalebElm.Application.Services.Abstraction;
-using TalebElm.Application.Services.Concrete;
-using TalebElm.Application.Validators;
-using TalebElm.Domain.Interfaces;
+using TalebElm.Application;
 using TalebElm.Infrastructure;
-using TalebElm.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,14 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddInfrastructure(builder.Configuration);
-
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<ITrackService, TrackService>();
-builder.Services.AddScoped<IExamService, ExamService>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IUserProgressService, UserProgressService>();
-
-builder.Services.AddScoped<IValidator<CreateTrackRequest>, CreateTrackRequestValidator>();
+builder.Services.AddApplication();
 
 var app = builder.Build();
 

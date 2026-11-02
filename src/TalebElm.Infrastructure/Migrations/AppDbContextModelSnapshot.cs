@@ -15,7 +15,7 @@ namespace TalebElm.Infrastructure.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.11");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.12");
 
             modelBuilder.Entity("TalebElm.Domain.Entities.Exam", b =>
                 {
@@ -44,9 +44,71 @@ namespace TalebElm.Infrastructure.Migrations
 
                     b.ToTable("Exams", t =>
                         {
-                            t.HasCheckConstraint("CK_Exams_PassThreshold_Range", "PassThreshold >= 0 AND PassThreshold <= 100");
+                            t.HasCheckConstraint("CK_Exams_PassThreshold_Range", "PassThreshold >= 1 AND PassThreshold <= 100");
 
                             t.HasCheckConstraint("CK_Exams_Title_NotEmpty", "length(trim(Title)) > 0");
+                        });
+                });
+
+            modelBuilder.Entity("TalebElm.Domain.Entities.ExamOption", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ExamQuestionId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsCorrect")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExamQuestionId");
+
+                    b.ToTable("ExamOptions", t =>
+                        {
+                            t.HasCheckConstraint("CK_ExamOptions_Text_NotEmpty", "length(trim(\"Text\")) > 0");
+                        });
+                });
+
+            modelBuilder.Entity("TalebElm.Domain.Entities.ExamQuestion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ExamId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Prompt")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExamId", "Order")
+                        .IsUnique();
+
+                    b.ToTable("ExamQuestions", t =>
+                        {
+                            t.HasCheckConstraint("CK_ExamQuestions_Points_Positive", "\"Points\" > 0");
                         });
                 });
 
@@ -84,6 +146,46 @@ namespace TalebElm.Infrastructure.Migrations
                             t.HasCheckConstraint("CK_Lessons_Order_Positive", "\"Order\" > 0");
 
                             t.HasCheckConstraint("CK_Lessons_Title_NotEmpty", "length(trim(Title)) > 0");
+                        });
+                });
+
+            modelBuilder.Entity("TalebElm.Domain.Entities.LessonResource", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Citation")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("LessonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Url")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LessonId");
+
+                    b.ToTable("LessonResources", t =>
+                        {
+                            t.HasCheckConstraint("CK_LessonResources_Order_Positive", "\"Order\" > 0");
                         });
                 });
 
@@ -155,6 +257,34 @@ namespace TalebElm.Infrastructure.Migrations
 
                             t.HasCheckConstraint("CK_Tracks_Name_NotEmpty", "length(trim(Name)) > 0");
                         });
+                });
+
+            modelBuilder.Entity("TalebElm.Domain.Entities.TrackEnrollment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("EnrolledAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("TrackId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TrackId");
+
+                    b.HasIndex("UserId", "TrackId")
+                        .IsUnique();
+
+                    b.ToTable("TrackEnrollments");
                 });
 
             modelBuilder.Entity("TalebElm.Domain.Entities.User", b =>
@@ -250,6 +380,28 @@ namespace TalebElm.Infrastructure.Migrations
                     b.Navigation("Module");
                 });
 
+            modelBuilder.Entity("TalebElm.Domain.Entities.ExamOption", b =>
+                {
+                    b.HasOne("TalebElm.Domain.Entities.ExamQuestion", "ExamQuestion")
+                        .WithMany("Options")
+                        .HasForeignKey("ExamQuestionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ExamQuestion");
+                });
+
+            modelBuilder.Entity("TalebElm.Domain.Entities.ExamQuestion", b =>
+                {
+                    b.HasOne("TalebElm.Domain.Entities.Exam", "Exam")
+                        .WithMany("Questions")
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Exam");
+                });
+
             modelBuilder.Entity("TalebElm.Domain.Entities.Lesson", b =>
                 {
                     b.HasOne("TalebElm.Domain.Entities.Module", "Module")
@@ -261,6 +413,17 @@ namespace TalebElm.Infrastructure.Migrations
                     b.Navigation("Module");
                 });
 
+            modelBuilder.Entity("TalebElm.Domain.Entities.LessonResource", b =>
+                {
+                    b.HasOne("TalebElm.Domain.Entities.Lesson", "Lesson")
+                        .WithMany()
+                        .HasForeignKey("LessonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Lesson");
+                });
+
             modelBuilder.Entity("TalebElm.Domain.Entities.Module", b =>
                 {
                     b.HasOne("TalebElm.Domain.Entities.Track", "Track")
@@ -270,6 +433,25 @@ namespace TalebElm.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Track");
+                });
+
+            modelBuilder.Entity("TalebElm.Domain.Entities.TrackEnrollment", b =>
+                {
+                    b.HasOne("TalebElm.Domain.Entities.Track", "Track")
+                        .WithMany("TrackEnrollments")
+                        .HasForeignKey("TrackId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TalebElm.Domain.Entities.User", "User")
+                        .WithMany("TrackEnrollments")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Track");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TalebElm.Domain.Entities.UserProgress", b =>
@@ -291,6 +473,16 @@ namespace TalebElm.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("TalebElm.Domain.Entities.Exam", b =>
+                {
+                    b.Navigation("Questions");
+                });
+
+            modelBuilder.Entity("TalebElm.Domain.Entities.ExamQuestion", b =>
+                {
+                    b.Navigation("Options");
+                });
+
             modelBuilder.Entity("TalebElm.Domain.Entities.Module", b =>
                 {
                     b.Navigation("Exam");
@@ -301,6 +493,13 @@ namespace TalebElm.Infrastructure.Migrations
             modelBuilder.Entity("TalebElm.Domain.Entities.Track", b =>
                 {
                     b.Navigation("Modules");
+
+                    b.Navigation("TrackEnrollments");
+                });
+
+            modelBuilder.Entity("TalebElm.Domain.Entities.User", b =>
+                {
+                    b.Navigation("TrackEnrollments");
                 });
 #pragma warning restore 612, 618
         }

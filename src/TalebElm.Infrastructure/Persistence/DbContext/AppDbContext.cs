@@ -25,9 +25,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     }
     public DbSet<User> Users => Set<User>();
     public DbSet<Exam> Exams => Set<Exam>();
+    public DbSet<ExamQuestion> ExamQuestions => Set<ExamQuestion>();
+    public DbSet<ExamOption> ExamOptions => Set<ExamOption>();
     public DbSet<UserProgress> UserProgresses => Set<UserProgress>();
     public DbSet<Module> Modules => Set<Module>();
     public DbSet<Lesson> Lessons => Set<Lesson>();
     public DbSet<Track> Tracks => Set<Track>();
     public DbSet<TrackEnrollment> TrackEnrollments => Set<TrackEnrollment>();
+    public DbSet<LessonResource> LessonResources => Set<LessonResource>();
 }

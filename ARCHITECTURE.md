@@ -19,21 +19,24 @@ This separation keeps business rules independent of persistence technology and d
 ## 2. Layer overview
 
 ```text
-                   +---------------------+
-                   |         Api         |   Presentation / HTTP
-                   +---------------------+
-                        |        |
-               +---------------------+
-               |   Infrastructure    |   Persistence and external integrations
-               +---------------------+
-                        |        |
-               +---------------------+
-               |    Application      |   Use cases and orchestration
-               +---------------------+
-                        |        |
-               +---------------------+
-               |       Domain        |   Business rules and contracts
-               +---------------------+
+               +-----------------------+
+               |          Api          |   Presentation / HTTP
+               +-----------------------+
+                           |
+                           v
+               +-----------------------+
+               |    Infrastructure     |   Persistence and external integrations
+               +-----------------------+
+                           |
+                           v
+               +-----------------------+
+               |      Application      |   Use cases and orchestration
+               +-----------------------+
+                           |
+                           v
+               +-----------------------+
+               |        Domain         |   Business rules and contracts
+               +-----------------------+
 
    Tests are cross-cutting and may reference any production layer.
 ```
@@ -52,7 +55,7 @@ This separation keeps business rules independent of persistence technology and d
 
 **Path:** `src/TalebElm.Domain`
 
-The Domain layer models the platform's core concepts — `User`, `Track`, `Module`, `Lesson`, `Exam`, `UserProgress` — along with their invariants, enumerations (`TrackStatus`, `LessonType`, `UserRole`), domain exceptions, and repository contracts (`IRepository<T>`, entity-specific interfaces, `IUnitOfWork`).
+The Domain layer models the platform's core concepts — `User`, `Track`, `Module`, `Lesson`, `LessonResource`, `Exam`, `TrackEnrollment`, `UserProgress` — along with their invariants, enumerations (`TrackStatus`, `LessonType`, `LessonResourceKind`, `UserRole`), domain exceptions, and repository contracts (`IRepository<T>`, entity-specific interfaces, `IUnitOfWork`).
 
 Containment rules:
 
@@ -70,7 +73,7 @@ Anti-patterns: persistence logic inside entities, HTTP or serialization concerns
 
 The Application layer implements the platform's use cases — for example, create/track retrieval, exam submission, progress evaluation — as service classes behind explicit interfaces:
 
-- **Interfaces** (`Services/Abstraction/`): `IUserService`, `ITrackService`, `IExamService`, `IUserProgressService`.
+- **Interfaces** (`Services/Abstraction/`): `IUserService`, `ITrackService`, `IModuleService`, `ILessonService`, `IExamService`, `IUserProgressService`, `IPasswordHasher`.
 - **Implementations** (`Services/Concrete/`): use-case orchestration depending only on Domain abstractions, normally `IUnitOfWork`. All business-logic decisions reside here.
 - **DTOs** (`DTOs/`): immutable `record` request/response contracts decoupling the HTTP surface from Domain entities.
 - **Validators** (`Validators/`): FluentValidation input rules.
@@ -174,3 +177,11 @@ Domain rules participate at every step; no layer bypasses its adjacent boundary.
 | Behavioral verification | Tests |
 
 For normative conventions — service and repository patterns, DTO naming, EF Core constraint catalog, validation, controller standards, and current implementation status — see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and [`docs/PROJECT_STRUCTURE.md`](docs/PROJECT_STRUCTURE.md).
+
+## External services
+
+TalebElm calls external services only through interfaces in Application, with typed HttpClient implementations in Infrastructure and business rules in Application services. Every asynchronous method accepts a CancellationToken. Background jobs are hosted services in Api that only call Application services (Decision 30).
+
+## CancellationToken
+
+New code must pass `HttpContext.RequestAborted` through the stack. Existing code migrates under the cancellation-token issue.
